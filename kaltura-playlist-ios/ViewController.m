@@ -22,9 +22,45 @@ static NSArray *entryIds;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
     self.player.delegate = self;
     // Do any additional setup after loading the view, typically from a nib.
+}
+
+-(void)test {
+    NSLog(@"REQUEST");
+    /*
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    [request setURL:[NSURL URLWithString:@"http://localhost:8080/api/playlist/radiox/lunes"]];
+    [request setHTTPMethod:@"GET"];
+    
+    NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
+    [[session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        //     NSString *requestReply = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+        
+        NSDictionary *newJSON = [NSJSONSerialization JSONObjectWithData:data
+                                                                options:0
+                                                                  error:nil];
+        entryIds = [newJSON objectForKey:@"playlist"];
+        counter = 0;
+        // Video Entry
+        config.entryId = entryIds[counter];
+        NSLog(@"requestReply: %@", newJSON);
+    }] resume];
+    
+    */
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    [request setURL:[NSURL URLWithString:@"http://localhost:8080/api/playlist/radiox/lunes"]];
+    NSData *data = [NSURLConnection sendSynchronousRequest:request
+                                            returningResponse:nil
+                                                        error:nil];
+    NSDictionary *newJSON = [NSJSONSerialization JSONObjectWithData:data
+                                                            options:0
+                                                              error:nil];
+    entryIds = [newJSON objectForKey:@"playlist"];
+    counter = 0;
+    // Video Entry
+    config.entryId = entryIds[counter];
+    NSLog(@"requestReply: %@", newJSON);
 }
 
 - (void)didReceiveMemoryWarning {
@@ -47,16 +83,17 @@ static NSArray *entryIds;
         config = [[KPPlayerConfig alloc] initWithServer:@"http://vodgc.com"
                                                uiConfID:@"23448994"
                                               partnerId:@"109"];
-        counter = 0;
-        entryIds = @[@"0_fms0o85z", @"0_0yazfkud", @"0_o61ax56a"];
+        [self test];
+        //counter = 0;
+//        entryIds = @[@"0_afssmo0b",@"0_fms0o85z", @"0_0yazfkud", @"0_o61ax56a"];
         // Video Entry
-        config.entryId = entryIds[counter];
+        //config.entryId = entryIds[counter];
         //config.entryId = @"0_adsvymov";
         
         //        [config setEntryId:@"0_79j3ff7e"];
         
         // Setting this property will cache the html pages in the limit size
-        //        config.cacheSize = 0.8;
+        config.cacheSize = 0.8;
         
         [config addConfigKey:@"autoPlay" withValue:@"true"];
         [self hideHTMLControls];
@@ -71,6 +108,8 @@ static NSArray *entryIds;
     // chromeless config
     // Set AutoPlay as configuration on player (same like setting a flashvar)
     [config addConfigKey:@"controlBarContainer.plugin" withValue:@"false"];
+    // whitout poster
+    [config addConfigKey:@"EmbedPlayer.HidePosterOnStart" withValue:@"true"];
     [config addConfigKey:@"topBarContainer.plugin" withValue:@"false"];
     [config addConfigKey:@"largePlayBtn.plugin" withValue:@"false"];
     [config addConfigKey:@"loadingSpinner.plugin" withValue:@"false"];
