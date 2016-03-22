@@ -17,8 +17,12 @@
     KPPlayerConfig *config;
 }
 
+static int counter;
+static NSArray *entryIds;
+
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
     self.player.delegate = self;
     // Do any additional setup after loading the view, typically from a nib.
 }
@@ -28,10 +32,12 @@
     // Dispose of any resources that can be recreated.
 }
 
-- (void)kPlayer:(KPViewController *)_player playerPlaybackStateDidChange:(KPMediaPlaybackState)state{
+- (void)kPlayer:(KPViewController *)player playerPlaybackStateDidChange:(KPMediaPlaybackState)state{
     NSLog(@"player state %ld", (long)state);
-    if (state == KPMediaPlaybackStateEnded){
+    if (state == KPMediaPlaybackStateEnded && counter < [entryIds count]-1){
+        counter = counter + 1;
         NSLog(@"entry played");
+        [player changeMedia:entryIds[counter]];
     }
 }
 
@@ -41,8 +47,12 @@
         config = [[KPPlayerConfig alloc] initWithServer:@"http://vodgc.com"
                                                uiConfID:@"23448994"
                                               partnerId:@"109"];
+        counter = 0;
+        entryIds = @[@"0_fms0o85z", @"0_0yazfkud", @"0_o61ax56a"];
         // Video Entry
-        config.entryId = @"0_0yazfkud";
+        config.entryId = entryIds[counter];
+        //config.entryId = @"0_adsvymov";
+        
         //        [config setEntryId:@"0_79j3ff7e"];
         
         // Setting this property will cache the html pages in the limit size
