@@ -26,55 +26,9 @@ static NSArray *entryIds;
     // Do any additional setup after loading the view, typically from a nib.
 }
 
--(void)test {
-    NSLog(@"REQUEST");
-    /*
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-    [request setURL:[NSURL URLWithString:@"http://localhost:8080/api/playlist/radiox/lunes"]];
-    [request setHTTPMethod:@"GET"];
-    
-    NSURLSession *session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
-    [[session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-        //     NSString *requestReply = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
-        
-        NSDictionary *newJSON = [NSJSONSerialization JSONObjectWithData:data
-                                                                options:0
-                                                                  error:nil];
-        entryIds = [newJSON objectForKey:@"playlist"];
-        counter = 0;
-        // Video Entry
-        config.entryId = entryIds[counter];
-        NSLog(@"requestReply: %@", newJSON);
-    }] resume];
-    
-    */
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-    [request setURL:[NSURL URLWithString:@"http://localhost:8080/api/playlist/radiox/lunes"]];
-    NSData *data = [NSURLConnection sendSynchronousRequest:request
-                                            returningResponse:nil
-                                                        error:nil];
-    NSDictionary *newJSON = [NSJSONSerialization JSONObjectWithData:data
-                                                            options:0
-                                                              error:nil];
-    entryIds = [newJSON objectForKey:@"playlist"];
-    counter = 0;
-    // Video Entry
-    config.entryId = entryIds[counter];
-    NSLog(@"requestReply: %@", newJSON);
-}
-
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
-}
-
-- (void)kPlayer:(KPViewController *)player playerPlaybackStateDidChange:(KPMediaPlaybackState)state{
-    NSLog(@"player state %ld", (long)state);
-    if (state == KPMediaPlaybackStateEnded && counter < [entryIds count]-1){
-        counter = counter + 1;
-        NSLog(@"entry played");
-        [player changeMedia:entryIds[counter]];
-    }
 }
 
 - (KPViewController *)player {
@@ -83,23 +37,13 @@ static NSArray *entryIds;
         config = [[KPPlayerConfig alloc] initWithServer:@"http://vodgc.com"
                                                uiConfID:@"23448994"
                                               partnerId:@"109"];
-        [self test];
-        //counter = 0;
-//        entryIds = @[@"0_afssmo0b",@"0_fms0o85z", @"0_0yazfkud", @"0_o61ax56a"];
-        // Video Entry
-        //config.entryId = entryIds[counter];
-        //config.entryId = @"0_adsvymov";
-        
-        //        [config setEntryId:@"0_79j3ff7e"];
-        
         // Setting this property will cache the html pages in the limit size
-        config.cacheSize = 0.8;
-        
+        //config.cacheSize = 0.8;
         [config addConfigKey:@"autoPlay" withValue:@"true"];
         [self hideHTMLControls];
+        //[config setEntryId: @"0_q7mmw9yy"];
         _player = [[KPViewController alloc] initWithConfiguration:config];
         NSLog(@"Player configured");
-        
     }
     return _player;
 }
@@ -115,9 +59,79 @@ static NSArray *entryIds;
     [config addConfigKey:@"loadingSpinner.plugin" withValue:@"false"];
 }
 
+
+- (void)kPlayer:(KPViewController *)player playerPlaybackStateDidChange:(KPMediaPlaybackState)state{
+    NSLog(@"PLAYER PLAYBACK STATE DID CHANGE TO: %ld", (long)state);
+    if (state ==  KPMediaPlaybackStateReady && counter < [entryIds count]-1){
+        // Get playlist from API
+        NSLog(@"KPMediaPlaybackStateReady");
+        //[self getPlaylist];
+    }
+    
+    if (state == KPMediaPlaybackStateEnded && counter < [entryIds count]-1){
+        counter = counter + 1;
+        NSLog(@"entry played");
+        [player changeMedia:entryIds[counter]];
+    }
+}
+
+
+- (void)kPlayer:(KPViewController *)player playerLoadStateDidChange:(KPMediaLoadState)state{
+    NSLog(@"PLAYER LOAD STATE DID CHANGE TO: %ld", (long)state);
+}
+
+-(void)getPlaylist {
+    NSLog(@"REQUEST");
+    // 1. The web address & headers
+    NSString *webAddress = @"http://localhost:8080/api/playlist/radiox/lunes";
+    
+    // 2. An NSURL wrapped in an NSURLRequest
+    NSURL* url = [NSURL URLWithString:webAddress];
+    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    
+    // 3. An NSURLSession Configuration
+    NSURLSessionConfiguration *sessionConfiguration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    
+    // 4. The URLSession itself.
+    NSURLSession *urlSession = [NSURLSession sessionWithConfiguration:sessionConfiguration];
+    
+    // 5. A session task: NSURLSessionDataTask or NSURLSessionDownloadTask
+    NSURLSessionDataTask *dataTask = [urlSession dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        NSError *parseError;
+        NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&parseError];
+        entryIds = [json objectForKey:@"playlist"];
+        //counter = 0;
+        //config.entryId = entryIds[counter];
+        
+        dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+            dispatch_async(dispatch_get_main_queue(), ^(void){
+                //Run UI Updates
+                //Background Thread
+                counter = 0;
+                //[_player.playerController isPreparedToPlay];
+                
+                config.entryId = entryIds[counter];
+                [_player changeConfiguration:config];
+                //[_player.playerController play];
+
+            });
+        });
+        
+        
+        NSLog(@"%@", json);
+    }];
+    
+    // 5b. Set the delegate if you did not use the completion handler initializer
+    //    urlSession.delegate = self;
+    
+    // 6. Finally, call resume on your task.
+    [dataTask resume];
+}
+
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     [self presentViewController:self.player animated:YES completion:nil];
+    [self getPlaylist];
 }
 
 @end
