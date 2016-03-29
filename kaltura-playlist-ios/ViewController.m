@@ -118,7 +118,7 @@ static NSArray *entryIds;
 -(void)getPlaylist {
     NSLog(@"GET REQUEST PLAYLIST");
     // 1. The web address & headers
-    NSString *webAddress = @"http://localhost:8080/api/playlist/radiox/lunes";
+    NSString *webAddress = @"http://precr.com.ar:8080/api/playlist/radiox/lunes";
     
     // 2. An NSURL wrapped in an NSURLRequest
     NSURL* url = [NSURL URLWithString:webAddress];
