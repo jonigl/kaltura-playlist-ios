@@ -23,6 +23,8 @@ static NSArray *entryIds;
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.player.delegate = self;
+    // Get playlist from API
+    [self getPlaylist];
     // Do any additional setup after loading the view, typically from a nib.
 }
 
@@ -38,12 +40,12 @@ static NSArray *entryIds;
                                                uiConfID:@"23448994"
                                               partnerId:@"109"];
         // Setting this property will cache the html pages in the limit size
-        //config.cacheSize = 0.8;
+       // config.cacheSize = 0.8;
         [config addConfigKey:@"autoPlay" withValue:@"true"];
         [self hideHTMLControls];
         //[config setEntryId: @"0_q7mmw9yy"];
         _player = [[KPViewController alloc] initWithConfiguration:config];
-        NSLog(@"Player configured");
+        NSLog(@"PLAYER CONFIGURED");
     }
     return _player;
 }
@@ -51,7 +53,7 @@ static NSArray *entryIds;
 - (void)hideHTMLControls {
     // chromeless config
     // Set AutoPlay as configuration on player (same like setting a flashvar)
-    [config addConfigKey:@"controlBarContainer.plugin" withValue:@"false"];
+   // [config addConfigKey:@"controlBarContainer.plugin" withValue:@"false"];
     // whitout poster
     [config addConfigKey:@"EmbedPlayer.HidePosterOnStart" withValue:@"true"];
     [config addConfigKey:@"topBarContainer.plugin" withValue:@"false"];
@@ -59,20 +61,17 @@ static NSArray *entryIds;
     [config addConfigKey:@"loadingSpinner.plugin" withValue:@"false"];
 }
 
-
 - (void)kPlayer:(KPViewController *)player playerPlaybackStateDidChange:(KPMediaPlaybackState)state{
-    NSLog(@"PLAYER PLAYBACK STATE DID CHANGE TO: %ld", (long)state);
-    if (state ==  KPMediaPlaybackStateReady && counter < [entryIds count]-1){
-        // Get playlist from API
-        NSLog(@"KPMediaPlaybackStateReady");
-        //[self getPlaylist];
-    }
-    
+    [self logPlaybackState: state];
     if (state == KPMediaPlaybackStateEnded && counter < [entryIds count]-1){
         counter = counter + 1;
-        NSLog(@"entry played");
+        NSLog(@"NEXT VIDEO");
         [player changeMedia:entryIds[counter]];
     }
+    if (state == KPMediaPlaybackStatePaused && counter < [entryIds count]-1){
+        //[player.playerController play];
+    }
+    
 }
 
 
@@ -80,8 +79,44 @@ static NSArray *entryIds;
     NSLog(@"PLAYER LOAD STATE DID CHANGE TO: %ld", (long)state);
 }
 
+
+-(void)logPlaybackState: (KPMediaPlaybackState)state {
+    NSLog(@"PLAYER PLAYBACK STATE DID CHANGE TO:");
+    switch (state) {
+        case KPMediaPlaybackStateUnknown:
+            NSLog(@"KPMediaPlaybackStateUnknown");
+            break;
+        case KPMediaPlaybackStateLoaded:
+            NSLog(@"KPMediaPlaybackStateLoaded");
+            break;
+        case KPMediaPlaybackStateReady:
+            NSLog(@"KPMediaPlaybackStateReady");
+            break;
+        case KPMediaPlaybackStatePlaying:
+            NSLog(@"KPMediaPlaybackStatePlaying");
+            break;
+        case KPMediaPlaybackStatePaused:
+            NSLog(@"KPMediaPlaybackStatePaused");
+            break;
+        case KPMediaPlaybackStateEnded:
+            NSLog(@"KPMediaPlaybackStateEnded");
+            break;
+        case KPMediaPlaybackStateInterrupted:
+            NSLog(@"KPMediaPlaybackStateInterrupted");
+            break;
+        case KPMediaPlaybackStateSeekingForward:
+            NSLog(@"KPMediaPlaybackStateSeekingForward");
+            break;
+        case KPMediaPlaybackStateSeekingBackward:
+            NSLog(@"KPMediaPlaybackStateSeekingBackward");
+            break;
+        default:
+            break;
+    }
+}
+
 -(void)getPlaylist {
-    NSLog(@"REQUEST");
+    NSLog(@"GET REQUEST PLAYLIST");
     // 1. The web address & headers
     NSString *webAddress = @"http://localhost:8080/api/playlist/radiox/lunes";
     
@@ -99,26 +134,18 @@ static NSArray *entryIds;
     NSURLSessionDataTask *dataTask = [urlSession dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
         NSError *parseError;
         NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&parseError];
+        NSLog(@"%@", json);
         entryIds = [json objectForKey:@"playlist"];
-        //counter = 0;
-        //config.entryId = entryIds[counter];
-        
         dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
             dispatch_async(dispatch_get_main_queue(), ^(void){
                 //Run UI Updates
                 //Background Thread
                 counter = 0;
-                //[_player.playerController isPreparedToPlay];
-                
                 config.entryId = entryIds[counter];
                 [_player changeConfiguration:config];
-                //[_player.playerController play];
 
             });
         });
-        
-        
-        NSLog(@"%@", json);
     }];
     
     // 5b. Set the delegate if you did not use the completion handler initializer
@@ -131,7 +158,6 @@ static NSArray *entryIds;
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
     [self presentViewController:self.player animated:YES completion:nil];
-    [self getPlaylist];
 }
 
 @end
