@@ -53,7 +53,7 @@ static NSArray *entryIds;
 - (void)hideHTMLControls {
     // chromeless config
     // Set AutoPlay as configuration on player (same like setting a flashvar)
-   // [config addConfigKey:@"controlBarContainer.plugin" withValue:@"false"];
+    [config addConfigKey:@"controlBarContainer.plugin" withValue:@"false"];
     // whitout poster
     [config addConfigKey:@"EmbedPlayer.HidePosterOnStart" withValue:@"true"];
     [config addConfigKey:@"topBarContainer.plugin" withValue:@"false"];
