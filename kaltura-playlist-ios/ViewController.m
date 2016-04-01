@@ -15,6 +15,7 @@
 
 @implementation ViewController {
     KPPlayerConfig *config;
+    
 }
 
 static int counter;
@@ -26,6 +27,10 @@ static NSArray *entryIds;
     // Get playlist from API
     [self getPlaylist];
     // Do any additional setup after loading the view, typically from a nib.
+}
+
++(void)setURLScheme: (NSURL *)url{
+    self.URLScheme = url;
 }
 
 - (void)didReceiveMemoryWarning {
@@ -66,7 +71,7 @@ static NSArray *entryIds;
     if (state == KPMediaPlaybackStateEnded && counter < [entryIds count]-1){
         counter = counter + 1;
         NSLog(@"NEXT VIDEO");
-        [player changeMedia:entryIds[counter]];
+        [player changeMedia:[entryIds[counter]objectForKey:@"id"]];
     }
     if (state == KPMediaPlaybackStatePaused && counter < [entryIds count]-1){
         //[player.playerController play];
@@ -118,7 +123,7 @@ static NSArray *entryIds;
 -(void)getPlaylist {
     NSLog(@"GET REQUEST PLAYLIST");
     // 1. The web address & headers
-    NSString *webAddress = @"http://precr.com.ar:8080/api/playlist/radiox/lunes";
+    NSString *webAddress = @"http://devcr.com.ar:8080/api/playlist/radiox/lunes";
     
     // 2. An NSURL wrapped in an NSURLRequest
     NSURL* url = [NSURL URLWithString:webAddress];
@@ -141,19 +146,22 @@ static NSArray *entryIds;
                 //Run UI Updates
                 //Background Thread
                 counter = 0;
-                config.entryId = entryIds[counter];
+                config.entryId = [entryIds[counter] objectForKey:@"id"];
                 [_player changeConfiguration:config];
 
             });
         });
     }];
     
-    // 5b. Set the delegate if you did not use the completion handler initializer
+    // 5b. Set the delegate if you did not use the completion handler initiali
     //    urlSession.delegate = self;
     
     // 6. Finally, call resume on your task.
     [dataTask resume];
 }
+
+
+
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];

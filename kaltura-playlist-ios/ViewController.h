@@ -10,6 +10,7 @@
 
 @interface ViewController : UIViewController
 
++ (void)setURLScheme:(NSURL *)url;
 
 @end
 

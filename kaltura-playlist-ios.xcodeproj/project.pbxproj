@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0F32C5911CADB1CD00CC666E /* kaltura-playlist-ios.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = 0F32C58F1CADA0F200CC666E /* kaltura-playlist-ios.entitlements */; };
 		0F56D8081CA0968900FB0A2E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F56D8071CA0968900FB0A2E /* main.m */; };
 		0F56D80B1CA0968900FB0A2E /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F56D80A1CA0968900FB0A2E /* AppDelegate.m */; };
 		0F56D80E1CA0968900FB0A2E /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F56D80D1CA0968900FB0A2E /* ViewController.m */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0F32C58F1CADA0F200CC666E /* kaltura-playlist-ios.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = "kaltura-playlist-ios.entitlements"; sourceTree = "<group>"; };
 		0F56D8031CA0968900FB0A2E /* kaltura-playlist-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "kaltura-playlist-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0F56D8071CA0968900FB0A2E /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		0F56D8091CA0968900FB0A2E /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -67,6 +69,7 @@
 		0F56D8051CA0968900FB0A2E /* kaltura-playlist-ios */ = {
 			isa = PBXGroup;
 			children = (
+				0F32C58F1CADA0F200CC666E /* kaltura-playlist-ios.entitlements */,
 				0F56D8091CA0968900FB0A2E /* AppDelegate.h */,
 				0F56D80A1CA0968900FB0A2E /* AppDelegate.m */,
 				0F56D80C1CA0968900FB0A2E /* ViewController.h */,
@@ -140,6 +143,12 @@
 				TargetAttributes = {
 					0F56D8021CA0968900FB0A2E = {
 						CreatedOnToolsVersion = 7.2.1;
+						DevelopmentTeam = 6B57FTX9Y4;
+						SystemCapabilities = {
+							com.apple.SafariKeychain = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -168,6 +177,7 @@
 			files = (
 				0F56D8191CA0968900FB0A2E /* LaunchScreen.storyboard in Resources */,
 				0F56D8161CA0968900FB0A2E /* Assets.xcassets in Resources */,
+				0F32C5911CADB1CD00CC666E /* kaltura-playlist-ios.entitlements in Resources */,
 				0F56D8111CA0968900FB0A2E /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -343,11 +353,15 @@
 			baseConfigurationReference = 6CCFFAE3E8C8ADF84493B122 /* Pods-kaltura-playlist-ios.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "kaltura-playlist-ios/kaltura-playlist-ios.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "kaltura-playlist-ios/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "ar.com.lowenstern.kaltura-playlist-ios";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.radiomitre.kaltura-playlist-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -356,11 +370,15 @@
 			baseConfigurationReference = 97817DF632FDAD3E929FFE39 /* Pods-kaltura-playlist-ios.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "kaltura-playlist-ios/kaltura-playlist-ios.entitlements";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "kaltura-playlist-ios/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "ar.com.lowenstern.kaltura-playlist-ios";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.radiomitre.kaltura-playlist-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};

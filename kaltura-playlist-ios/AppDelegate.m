@@ -7,6 +7,7 @@
 //
 
 #import "AppDelegate.h"
+#import "ViewController.h"
 
 @interface AppDelegate ()
 
@@ -54,6 +55,34 @@
     // The directory the application uses to store the Core Data store file. This code uses a directory named "ar.com.lowenstern.kaltura_playlist_ios" in the application's documents directory.
     return [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject];
 }
+
+/*
+- (BOOL)application:(UIApplication *)application userActivityWasContinued:(NSUserActivity *)userActivity{
+    if ([userActivity.activityType isEqualToString:NSUserActivityTypeBrowsingWeb]) {
+        NSURL *url = userActivity.webpageURL;
+        // do something with the URL
+        NSLog(@"%@",[url path]);
+    }else{
+        NSLog(@"NO URL FOUND");
+    }    
+    return true;
+}
+*/
+
+- (BOOL)application:(UIApplication *)application continueUserActivity:(nonnull NSUserActivity *)userActivity restorationHandler:(nonnull void (^)(NSArray * _Nullable))restorationHandler {
+    //ViewController.URLScheme = userActivity.webpageURL;
+    [ViewController setURLScheme: userActivity.webpageURL];
+    
+    NSLog(@"%@",[userActivity.webpageURL path]);
+    return YES;
+}
+
+
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options{
+    NSLog(@"FROM %@",url);
+    return YES;
+}
+
 
 - (NSManagedObjectModel *)managedObjectModel {
     // The managed object model for the application. It is a fatal error for the application not to be able to find and load its model.
