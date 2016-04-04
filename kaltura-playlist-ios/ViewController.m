@@ -7,15 +7,17 @@
 //
 
 #import "ViewController.h"
+#import "Reachability.h"
 #import <KALTURAPlayerSDK/KPViewController.h>
+
 
 @interface ViewController () <KPViewControllerDelegate>
 @property (retain, nonatomic) KPViewController *player;
+@property (nonatomic) Reachability *internetReachability;
 @end
 
 @implementation ViewController {
     KPPlayerConfig *config;
-    
 }
 
 static int counter;
@@ -23,10 +25,33 @@ static NSArray *entryIds;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    // Observe the kNetworkReachabilityChangedNotification. When that notification is posted, the method reachabilityChanged will be called.
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
+    self.internetReachability = [Reachability reachabilityForInternetConnection];
+    [self.internetReachability startNotifier];
+    NetworkStatus remoteHostStatus = [self.internetReachability currentReachabilityStatus];
+    if(remoteHostStatus == NotReachable) {NSLog(@"no");}
+    else if (remoteHostStatus == ReachableViaWiFi) {NSLog(@"wifi"); }
+    else if (remoteHostStatus == ReachableViaWWAN) {NSLog(@"cell"); }
+    
+    // I delegate the player
     self.player.delegate = self;
+    
     // Get playlist from API
     [self getPlaylist];
     // Do any additional setup after loading the view, typically from a nib.
+}
+
+/*!
+ * Called by Reachability whenever status changes.
+ */
+- (void) reachabilityChanged:(NSNotification *)note
+{
+    NetworkStatus remoteHostStatus = [self.internetReachability currentReachabilityStatus];
+    if(remoteHostStatus == NotReachable) {NSLog(@"no");}
+    else if (remoteHostStatus == ReachableViaWiFi) {NSLog(@"wifi"); }
+    else if (remoteHostStatus == ReachableViaWWAN) {NSLog(@"cell"); }
 }
 
 +(void)setURLScheme: (NSURL *)url{
