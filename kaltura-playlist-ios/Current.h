@@ -10,10 +10,9 @@
 
 @interface Current : NSObject
 
-
-@property NSString *entryID;
+@property int index;
 @property double offset;
 
-
++(Current *) theCurrent;
 
 @end

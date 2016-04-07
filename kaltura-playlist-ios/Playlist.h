@@ -9,18 +9,29 @@
 #import <Foundation/Foundation.h>
 #import "Current.h"
 
-@interface Playlist : NSObject
+@interface Playlist : NSObject {
+    double playlist_module;
+}
 
 @property (nonatomic,strong) NSArray *entries;
-@property float duration;
-
+@property double duration;
+@property double timestamp;
 
 +(Playlist *) thePlaylist;
 
 -(void)getDuration;
-/*
+
 -(void)findCurrent;
--(Current *)getCurrent;
+
+-(void)nextEntrie;
+
+-(NSString *)getCurrentEntrieID;
+
+-(double)getCurrentOffset;
+
+-(BOOL)isLastEntrie;
+
+/*
 -(void)setCurrent:(Current *)current;
 */
 @end

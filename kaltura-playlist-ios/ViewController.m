@@ -75,7 +75,7 @@ static NSArray *entryIds;
         // Setting this property will cache the html pages in the limit size
        // config.cacheSize = 0.8;
         [config addConfigKey:@"autoPlay" withValue:@"true"];
-        [self hideHTMLControls];
+        //[self hideHTMLControls];
         //[config setEntryId: @"0_q7mmw9yy"];
         _player = [[KPViewController alloc] initWithConfiguration:config];
         NSLog(@"PLAYER CONFIGURED");
@@ -96,10 +96,13 @@ static NSArray *entryIds;
 
 - (void)kPlayer:(KPViewController *)player playerPlaybackStateDidChange:(KPMediaPlaybackState)state{
     [self logPlaybackState: state];
-    if (state == KPMediaPlaybackStateEnded && counter < [entryIds count]-1){
-        counter = counter + 1;
+    //if (state == KPMediaPlaybackStateEnded && counter < [entryIds count]-1){
+    if (state == KPMediaPlaybackStateEnded && ![[Playlist thePlaylist] isLastEntrie]){
+        //counter = counter + 1;
         NSLog(@"NEXT VIDEO");
-        [player changeMedia:[entryIds[counter]objectForKey:@"id"]];
+        [[Playlist thePlaylist] nextEntrie];
+        [player changeMedia:[[Playlist thePlaylist] getCurrentEntrieID]];
+        //[player changeMedia:[entryIds[counter]objectForKey:@"id"]];
     }
     if (state == KPMediaPlaybackStatePaused && counter < [entryIds count]-1){
         //[player.playerController play];
@@ -135,18 +138,22 @@ static NSArray *entryIds;
         NSLog(@"%@", json);
         // place where the global property playlist is set
         entryIds = [json objectForKey:@"playlist"];
+        // timestampo from ms to s
+        double timestamp = [[json objectForKey:@"timestamp"] doubleValue] /1000;
+        [[Playlist thePlaylist] setTimestamp:timestamp];
         [[Playlist thePlaylist] setEntries:entryIds];
-        [[Playlist thePlaylist] getDuration];
-        
+        [[Playlist thePlaylist] findCurrent];
         
         //current = [self getCurrentEntry];
         dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
             dispatch_async(dispatch_get_main_queue(), ^(void){
                 //Run UI Updates
                 //Background Thread
-                counter = 0;
-                config.entryId = [entryIds[counter] objectForKey:@"id"];
+                //counter = 0;
+                //config.entryId = [entryIds[counter] objectForKey:@"id"];
+                config.entryId = [[Playlist thePlaylist] getCurrentEntrieID];
                 [_player changeConfiguration:config];
+                [_player.playerController seek:[[Playlist thePlaylist] getCurrentOffset]];
 
             });
         });
