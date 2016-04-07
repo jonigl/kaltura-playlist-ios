@@ -21,6 +21,7 @@
 
 @implementation ViewController {
     KPPlayerConfig *config;
+    BOOL isFirstTime;
 }
 
 static int counter;
@@ -28,6 +29,7 @@ static NSArray *entryIds;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    isFirstTime = YES;
     
     // Observe the kNetworkReachabilityChangedNotification. When that notification is posted, the method reachabilityChanged will be called.
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
@@ -91,7 +93,7 @@ static NSArray *entryIds;
     [config addConfigKey:@"EmbedPlayer.HidePosterOnStart" withValue:@"true"];
     [config addConfigKey:@"topBarContainer.plugin" withValue:@"false"];
     [config addConfigKey:@"largePlayBtn.plugin" withValue:@"false"];
-    [config addConfigKey:@"loadingSpinner.plugin" withValue:@"false"];
+    //[config addConfigKey:@"loadingSpinner.plugin" withValue:@"false"];
 }
 
 - (void)kPlayer:(KPViewController *)player playerPlaybackStateDidChange:(KPMediaPlaybackState)state{
@@ -104,8 +106,8 @@ static NSArray *entryIds;
         [player changeMedia:[[Playlist thePlaylist] getCurrentEntrieID]];
         //[player changeMedia:[entryIds[counter]objectForKey:@"id"]];
     }
-    if (state == KPMediaPlaybackStatePaused && counter < [entryIds count]-1){
-        //[player.playerController play];
+    if (state == KPMediaPlaybackStatePaused && ![[Playlist thePlaylist] isLastEntrie]){
+    //    [player.playerController play];
     }
     
 }
@@ -113,13 +115,20 @@ static NSArray *entryIds;
 
 - (void)kPlayer:(KPViewController *)player playerLoadStateDidChange:(KPMediaLoadState)state{
     NSLog(@"PLAYER LOAD STATE DID CHANGE TO: %ld", (long)state);
+    if (state == 1 && isFirstTime) {
+        isFirstTime = NO;
+        [_player.playerController seek:[[Playlist thePlaylist] getCurrentOffset]];
+        [_player.playerController play];
+    }
 }
 
 -(void)getPlaylist {
     NSLog(@"GET REQUEST PLAYLIST");
     // 1. The web address & headers
     //NSString *webAddress = @"http://devcr.com.ar:8080/api/playlist/radiox/lunes";
-    NSString *webAddress = @"http://127.0.0.1:8080/api/test";
+    //NSString *webAddress = @"http://127.0.0.1:8080/api/test";
+    NSString *webAddress = @"http://devcr.com.ar:8080/api/test";
+    
     
     // 2. An NSURL wrapped in an NSURLRequest
     NSURL* url = [NSURL URLWithString:webAddress];
@@ -153,8 +162,6 @@ static NSArray *entryIds;
                 //config.entryId = [entryIds[counter] objectForKey:@"id"];
                 config.entryId = [[Playlist thePlaylist] getCurrentEntrieID];
                 [_player changeConfiguration:config];
-                [_player.playerController seek:[[Playlist thePlaylist] getCurrentOffset]];
-
             });
         });
     }];

@@ -31,6 +31,8 @@
 
 -(BOOL)isLastEntrie;
 
+-(BOOL)isFirstEntrie;
+
 /*
 -(void)setCurrent:(Current *)current;
 */

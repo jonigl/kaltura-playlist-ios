@@ -118,4 +118,8 @@
     return [_entries count] - 1 == [[Current theCurrent] index];
 }
 
+-(BOOL)isFirstEntrie{
+    return [[Current theCurrent] index] == 0;
+}
+
 @end
