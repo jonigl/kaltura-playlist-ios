@@ -115,7 +115,7 @@
 }
 
 -(BOOL)isLastEntrie{
-    return [_entries count] == [[Current theCurrent] index];
+    return [_entries count] - 1 == [[Current theCurrent] index];
 }
 
 @end
