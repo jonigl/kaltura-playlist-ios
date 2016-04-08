@@ -15,6 +15,7 @@
 
 @interface ViewController () <KPViewControllerDelegate>
 @property (retain, nonatomic) KPViewController *player;
+@property (retain, nonatomic) KPPlayerConfig *config;
 @property (nonatomic) Reachability *internetReachability;
 @property (nonatomic) Playlist *playlist;
 @end
@@ -22,7 +23,6 @@
 NSURL *_url;
 
 @implementation ViewController {
-    KPPlayerConfig *config;
     BOOL isFirstTime;
 }
 
@@ -69,30 +69,36 @@ NSURL *_url;
 
 - (KPViewController *)player {
     if (!_player) {
-        // Account Params
-        config = [[KPPlayerConfig alloc] initWithServer:@"http://vodgc.com"
-                                               uiConfID:@"23448994"
-                                              partnerId:@"109"];
-        // Setting this property will cache the html pages in the limit size
-       // config.cacheSize = 0.8;
-        [config addConfigKey:@"autoPlay" withValue:@"true"];
-        [self hideHTMLControls];
-        //[config setEntryId: @"0_q7mmw9yy"];
-        _player = [[KPViewController alloc] initWithConfiguration:config];
-        NSLog(@"PLAYER CONFIGURED");
+        _player = [KPViewController alloc];
+        //_player = [[KPViewController alloc] initWithConfiguration:config];
     }
     return _player;
+}
+
+
+-(void)configPlayerWithEntryID:(NSString *) entryID{
+    // Account Params
+    _config = [[KPPlayerConfig alloc] initWithServer:@"http://vodgc.com"
+                                           uiConfID:@"23448994"
+                                          partnerId:@"109"];
+    // Setting this property will cache the html pages in the limit size
+    // config.cacheSize = 0.8;
+    [_config setEntryId: entryID];
+    [_config addConfigKey:@"autoPlay" withValue:@"true"];
+    [self hideHTMLControls];
+    NSLog(@"PLAYER CONFIGURED");
 }
 
 // chromeless config
 - (void)hideHTMLControls {
     // Set AutoPlay as configuration on player (same like setting a flashvar)
-    [config addConfigKey:@"controlBarContainer.plugin" withValue:@"false"];
+    [_config addConfigKey:@"controlBarContainer.plugin" withValue:@"false"];
     // whitout poster
-    [config addConfigKey:@"EmbedPlayer.HidePosterOnStart" withValue:@"true"];
-    [config addConfigKey:@"topBarContainer.plugin" withValue:@"false"];
-    [config addConfigKey:@"largePlayBtn.plugin" withValue:@"false"];
+    [_config addConfigKey:@"EmbedPlayer.HidePosterOnStart" withValue:@"true"];
+    [_config addConfigKey:@"topBarContainer.plugin" withValue:@"false"];
+    [_config addConfigKey:@"largePlayBtn.plugin" withValue:@"false"];
     //[config addConfigKey:@"loadingSpinner.plugin" withValue:@"false"];
+    NSLog(@"HTML Controls hid");
 }
 
 - (void)kPlayer:(KPViewController *)player playerPlaybackStateDidChange:(KPMediaPlaybackState)state{
@@ -155,10 +161,9 @@ NSURL *_url;
             dispatch_async(dispatch_get_main_queue(), ^(void){
                 //Run UI Updates
                 //Background Thread
-                //counter = 0;
-                //config.entryId = [entryIds[counter] objectForKey:@"id"];
-                config.entryId = [[Playlist thePlaylist] getCurrentEntrieID];
-                [_player changeConfiguration:config];
+                NSString *entryID = [[Playlist thePlaylist] getCurrentEntrieID];
+                [self configPlayerWithEntryID: entryID];
+                [_player changeConfiguration:_config];
             });
         });
     }];
