@@ -72,7 +72,6 @@
 - (BOOL)application:(UIApplication *)application continueUserActivity:(nonnull NSUserActivity *)userActivity restorationHandler:(nonnull void (^)(NSArray * _Nullable))restorationHandler {
     //ViewController.URLScheme = userActivity.webpageURL;
     [ViewController setURLScheme: userActivity.webpageURL];
-    
     NSLog(@"%@",[userActivity.webpageURL path]);
     return YES;
 }

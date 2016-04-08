@@ -19,13 +19,12 @@
 @property (nonatomic) Playlist *playlist;
 @end
 
+NSURL *_url;
+
 @implementation ViewController {
     KPPlayerConfig *config;
     BOOL isFirstTime;
 }
-
-static int counter;
-static NSArray *entryIds;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -59,8 +58,8 @@ static NSArray *entryIds;
     else if (remoteHostStatus == ReachableViaWWAN) {NSLog(@"cell"); }
 }
 
-+(void)setURLScheme: (NSURL *)url{
-    self.URLScheme = url;
++(void)setURLScheme: (NSURL *)urlScheme{
+    _url = urlScheme;
 }
 
 - (void)didReceiveMemoryWarning {
@@ -77,7 +76,7 @@ static NSArray *entryIds;
         // Setting this property will cache the html pages in the limit size
        // config.cacheSize = 0.8;
         [config addConfigKey:@"autoPlay" withValue:@"true"];
-        //[self hideHTMLControls];
+        [self hideHTMLControls];
         //[config setEntryId: @"0_q7mmw9yy"];
         _player = [[KPViewController alloc] initWithConfiguration:config];
         NSLog(@"PLAYER CONFIGURED");
@@ -145,12 +144,10 @@ static NSArray *entryIds;
         NSError *parseError;
         NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&parseError];
         NSLog(@"%@", json);
-        // place where the global property playlist is set
-        entryIds = [json objectForKey:@"playlist"];
-        // timestampo from ms to s
+        NSArray *entryIds = [json objectForKey:@"playlist"];
+        [[Playlist thePlaylist] setEntries:entryIds];
         double timestamp = [[json objectForKey:@"timestamp"] doubleValue] /1000;
         [[Playlist thePlaylist] setTimestamp:timestamp];
-        [[Playlist thePlaylist] setEntries:entryIds];
         [[Playlist thePlaylist] findCurrent];
         
         //current = [self getCurrentEntry];
