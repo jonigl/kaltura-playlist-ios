@@ -18,6 +18,7 @@
 		0F6080011CB2BB2500B864D3 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F6080001CB2BB2500B864D3 /* Reachability.m */; };
 		0F6080041CB2E37B00B864D3 /* Current.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F6080031CB2E37B00B864D3 /* Current.m */; };
 		0F6080071CB411A600B864D3 /* Playlist.m in Sources */ = {isa = PBXBuildFile; fileRef = 0F6080061CB411A600B864D3 /* Playlist.m */; };
+		0F73AFE51CBBF58900E617CA /* TextureView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0F73AFE41CBBF58900E617CA /* TextureView.xib */; };
 		7404D3A2E9FA89C173844CD5 /* libPods-kaltura-playlist-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 59A8C6A6F459656ED435EBD7 /* libPods-kaltura-playlist-ios.a */; };
 /* End PBXBuildFile section */
 
@@ -40,6 +41,7 @@
 		0F6080031CB2E37B00B864D3 /* Current.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Current.m; sourceTree = "<group>"; };
 		0F6080051CB411A600B864D3 /* Playlist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Playlist.h; sourceTree = "<group>"; };
 		0F6080061CB411A600B864D3 /* Playlist.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Playlist.m; sourceTree = "<group>"; };
+		0F73AFE41CBBF58900E617CA /* TextureView.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = TextureView.xib; sourceTree = "<group>"; };
 		59A8C6A6F459656ED435EBD7 /* libPods-kaltura-playlist-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-kaltura-playlist-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6CCFFAE3E8C8ADF84493B122 /* Pods-kaltura-playlist-ios.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-kaltura-playlist-ios.debug.xcconfig"; path = "Pods/Target Support Files/Pods-kaltura-playlist-ios/Pods-kaltura-playlist-ios.debug.xcconfig"; sourceTree = "<group>"; };
 		97817DF632FDAD3E929FFE39 /* Pods-kaltura-playlist-ios.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-kaltura-playlist-ios.release.xcconfig"; path = "Pods/Target Support Files/Pods-kaltura-playlist-ios/Pods-kaltura-playlist-ios.release.xcconfig"; sourceTree = "<group>"; };
@@ -83,6 +85,7 @@
 				0F56D80A1CA0968900FB0A2E /* AppDelegate.m */,
 				0F56D80C1CA0968900FB0A2E /* ViewController.h */,
 				0F56D80D1CA0968900FB0A2E /* ViewController.m */,
+				0F73AFE41CBBF58900E617CA /* TextureView.xib */,
 				0F6080051CB411A600B864D3 /* Playlist.h */,
 				0F6080061CB411A600B864D3 /* Playlist.m */,
 				0F6080021CB2E37B00B864D3 /* Current.h */,
@@ -194,6 +197,7 @@
 				0F56D8161CA0968900FB0A2E /* Assets.xcassets in Resources */,
 				0F32C5911CADB1CD00CC666E /* kaltura-playlist-ios.entitlements in Resources */,
 				0F56D8111CA0968900FB0A2E /* Main.storyboard in Resources */,
+				0F73AFE51CBBF58900E617CA /* TextureView.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

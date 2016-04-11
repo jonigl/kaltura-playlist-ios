@@ -28,6 +28,9 @@ NSURL *_url;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    [self setNeedsStatusBarAppearanceUpdate];
+    
     isFirstTime = YES;
     
     // Observe the kNetworkReachabilityChangedNotification. When that notification is posted, the method reachabilityChanged will be called.
@@ -44,7 +47,13 @@ NSURL *_url;
     
     // Get playlist from API
     [self getPlaylist];
+    
     // Do any additional setup after loading the view, typically from a nib.
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle
+{
+    return UIStatusBarStyleLightContent;
 }
 
 /*!
@@ -208,9 +217,20 @@ NSURL *_url;
     }
 }
 
+
+-(void)customizeAction:(id)sender{
+    
+}
+
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
-    [self presentViewController:self.player animated:YES completion:nil];
+    [super viewDidAppear:animated];
+    self.player.view.frame = (CGRect){CGPointZero, _playerHolderView.frame.size};
+    [self.player loadPlayerIntoViewController:self];
+    [_playerHolderView addSubview:_player.view];
+    //[self presentViewController:self.player animated:YES completion:nil];
+    //UIView *modalView = [[[NSBundle mainBundle] loadNibNamed:@"TextureView" owner:self options:nil] objectAtIndex:0];
+    //[self.view addSubview:modalView];
 }
 
 @end

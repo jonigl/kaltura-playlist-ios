@@ -11,6 +11,8 @@
 @interface ViewController : UIViewController
 
 + (void)setURLScheme:(NSURL *)urlScheme;
+@property (weak, nonatomic) IBOutlet UIView
+*playerHolderView;
 
 @end
 
