@@ -33,6 +33,8 @@
 
 -(BOOL)isFirstEntrie;
 
+-(BOOL)isSetEntries;
+
 /*
 -(void)setCurrent:(Current *)current;
 */

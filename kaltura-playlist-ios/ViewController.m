@@ -24,29 +24,35 @@ NSURL *_url;
 
 @implementation ViewController {
     BOOL isFirstTime;
+    BOOL isRequestSent;
+    UIView *noInternetPopUp;
+    UILabel *noInternetLabel;
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
+
     [self setNeedsStatusBarAppearanceUpdate];
     
     isFirstTime = YES;
-    
+    isRequestSent = NO;
     // Observe the kNetworkReachabilityChangedNotification. When that notification is posted, the method reachabilityChanged will be called.
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
     self.internetReachability = [Reachability reachabilityForInternetConnection];
     [self.internetReachability startNotifier];
     NetworkStatus remoteHostStatus = [self.internetReachability currentReachabilityStatus];
-    if(remoteHostStatus == NotReachable) {NSLog(@"no");}
-    else if (remoteHostStatus == ReachableViaWiFi) {NSLog(@"wifi"); }
-    else if (remoteHostStatus == ReachableViaWWAN) {NSLog(@"cell"); }
+    if(remoteHostStatus != NotReachable) {
+        NSLog(@"Internet access is available");
+        [self getPlaylist];
+    }else{
+        NSLog(@"No internet connection");
+    }
     
     // I delegate the player
     self.player.delegate = self;
     
     // Get playlist from API
-    [self getPlaylist];
+    
     
     // Do any additional setup after loading the view, typically from a nib.
 }
@@ -62,9 +68,28 @@ NSURL *_url;
 - (void) reachabilityChanged:(NSNotification *)note
 {
     NetworkStatus remoteHostStatus = [self.internetReachability currentReachabilityStatus];
-    if(remoteHostStatus == NotReachable) {NSLog(@"no");}
-    else if (remoteHostStatus == ReachableViaWiFi) {NSLog(@"wifi"); }
-    else if (remoteHostStatus == ReachableViaWWAN) {NSLog(@"cell"); }
+    if(remoteHostStatus == NotReachable) {
+        noInternetPopUp.hidden = NO;
+        noInternetLabel.hidden = NO;
+        NSLog(@"No internet connection");
+    }else{
+        noInternetPopUp.hidden = YES;
+        noInternetLabel.hidden = YES;
+        NSLog(@"Internet access is available");
+        if (![Playlist thePlaylist].isSetEntries && !isRequestSent){
+            [self getPlaylist];
+        }
+    }
+    /*else if (remoteHostStatus == ReachableViaWiFi) {
+        noInternetPopUp.hidden = YES;
+        noInternetLabel.hidden = YES;
+        NSLog(@"wifi");
+    }
+    else if (remoteHostStatus == ReachableViaWWAN) {
+        noInternetPopUp.hidden = YES;
+        noInternetLabel.hidden = YES;
+        NSLog(@"cell");
+    }*/
 }
 
 +(void)setURLScheme: (NSURL *)urlScheme{
@@ -137,6 +162,7 @@ NSURL *_url;
 }
 
 -(void)getPlaylist {
+    isRequestSent = YES;
     NSLog(@"GET REQUEST PLAYLIST");
     // 1. The web address & headers
     //NSString *webAddress = @"http://devcr.com.ar:8080/api/playlist/radiox/lunes";
@@ -156,25 +182,32 @@ NSURL *_url;
     
     // 5. A session task: NSURLSessionDataTask or NSURLSessionDownloadTask
     NSURLSessionDataTask *dataTask = [urlSession dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        NSError *parseError;
-        NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&parseError];
-        NSLog(@"%@", json);
-        NSArray *entryIds = [json objectForKey:@"playlist"];
-        [[Playlist thePlaylist] setEntries:entryIds];
-        double timestamp = [[json objectForKey:@"timestamp"] doubleValue] /1000;
-        [[Playlist thePlaylist] setTimestamp:timestamp];
-        [[Playlist thePlaylist] findCurrent];
         
-        //current = [self getCurrentEntry];
-        dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
-            dispatch_async(dispatch_get_main_queue(), ^(void){
-                //Run UI Updates
-                //Background Thread
-                NSString *entryID = [[Playlist thePlaylist] getCurrentEntrieID];
-                [self configPlayerWithEntryID: entryID];
-                [_player changeConfiguration:_config];
+        if (error == nil){
+            NSError *parseError;
+            NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&parseError];
+            NSLog(@"%@", json);
+            NSArray *entryIds = [json objectForKey:@"playlist"];
+            [[Playlist thePlaylist] setEntries:entryIds];
+            double timestamp = [[json objectForKey:@"timestamp"] doubleValue] /1000;
+            [[Playlist thePlaylist] setTimestamp:timestamp];
+            [[Playlist thePlaylist] findCurrent];
+            
+            //current = [self getCurrentEntry];
+            dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+                dispatch_async(dispatch_get_main_queue(), ^(void){
+                    //Run UI Updates
+                    //Background Thread
+                    NSString *entryID = [[Playlist thePlaylist] getCurrentEntrieID];
+                    [self configPlayerWithEntryID: entryID];
+                    [_player changeConfiguration:_config];
+                });
             });
-        });
+        }else{
+            NSLog(@"There was a problem while a response was expected");
+            isRequestSent = NO;
+        }
+        
     }];
     // 5b. Set the delegate if you did not use the completion handler initiali
     //    urlSession.delegate = self;
@@ -218,8 +251,34 @@ NSURL *_url;
 }
 
 
--(void)customizeAction:(id)sender{
+-(void)drawnoInternetPopUpOverlay{
+    int width = 160, height = 160;
+    int statusBarHeight= [UIApplication sharedApplication].statusBarFrame.size.height;
+    CGRect noInternetPopUpFrame = CGRectMake(CGRectGetMidX(self.view.frame) - (width / 2.0), CGRectGetMidY(self.view.frame) + statusBarHeight - (height / 2.0), width,height);
+    noInternetPopUp = [[UIView alloc] initWithFrame:noInternetPopUpFrame];
+    noInternetPopUp.layer.cornerRadius = 10;
+    noInternetPopUp.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin);
+    noInternetPopUp.backgroundColor = [UIColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:0.5];
+    noInternetLabel = [[UILabel alloc] initWithFrame:noInternetPopUpFrame];
+    noInternetLabel.text = @"No internet \nconnection";
+    noInternetLabel.lineBreakMode = NSLineBreakByWordWrapping;
+    noInternetLabel.numberOfLines = 0;
+    noInternetLabel.textAlignment = NSTextAlignmentCenter;
+    noInternetLabel.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin);
+    noInternetLabel.textColor = [UIColor whiteColor];
+    NetworkStatus remoteHostStatus = [self.internetReachability currentReachabilityStatus];
+    if(remoteHostStatus == NotReachable) {
+        noInternetLabel.hidden = NO;
+        noInternetPopUp.hidden = NO;
+    }else{
+        noInternetLabel.hidden = YES;
+        noInternetPopUp.hidden = YES;
+    }
     
+    
+    [self.view addSubview:noInternetPopUp];
+    [self.view addSubview:noInternetLabel];
+    //[noInternetPopUp release];
 }
 
 - (void)viewDidAppear:(BOOL)animated {
@@ -228,9 +287,11 @@ NSURL *_url;
     self.player.view.frame = (CGRect){CGPointZero, _playerHolderView.frame.size};
     [self.player loadPlayerIntoViewController:self];
     [_playerHolderView addSubview:_player.view];
+    [self drawnoInternetPopUpOverlay];
+    
+    
     //[self presentViewController:self.player animated:YES completion:nil];
-    //UIView *modalView = [[[NSBundle mainBundle] loadNibNamed:@"TextureView" owner:self options:nil] objectAtIndex:0];
-    //[self.view addSubview:modalView];
+    
 }
 
 @end

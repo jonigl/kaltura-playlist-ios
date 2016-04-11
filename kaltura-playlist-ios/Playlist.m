@@ -122,4 +122,8 @@
     return [[Current theCurrent] index] == 0;
 }
 
+-(BOOL)isSetEntries{
+    return [_entries count] > 0;
+}
+
 @end
