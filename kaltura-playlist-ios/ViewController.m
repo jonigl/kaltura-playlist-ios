@@ -21,19 +21,22 @@
 @end
 
 NSURL *_url;
+int const noInternetPopUpTag = 1;
+int const loadingPopUpTag = 2;
+int const noInternetLabelTag = 3;
+int const spinnerTag = 4;
 
 @implementation ViewController {
     BOOL isFirstTime;
     BOOL isRequestSent;
-    UIView *noInternetPopUp;
-    UILabel *noInternetLabel;
 }
+
+
+
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-
     [self setNeedsStatusBarAppearanceUpdate];
-    
     isFirstTime = YES;
     isRequestSent = NO;
     // Observe the kNetworkReachabilityChangedNotification. When that notification is posted, the method reachabilityChanged will be called.
@@ -43,15 +46,15 @@ NSURL *_url;
     NetworkStatus remoteHostStatus = [self.internetReachability currentReachabilityStatus];
     if(remoteHostStatus != NotReachable) {
         NSLog(@"Internet access is available");
+        // Get playlist from API
         [self getPlaylist];
     }else{
         NSLog(@"No internet connection");
     }
-    
     // I delegate the player
     self.player.delegate = self;
     
-    // Get playlist from API
+    
     
     
     // Do any additional setup after loading the view, typically from a nib.
@@ -69,14 +72,15 @@ NSURL *_url;
 {
     NetworkStatus remoteHostStatus = [self.internetReachability currentReachabilityStatus];
     if(remoteHostStatus == NotReachable) {
-        noInternetPopUp.hidden = NO;
-        noInternetLabel.hidden = NO;
+        [[self.view viewWithTag:noInternetPopUpTag] setHidden:NO];
+        [[self.view viewWithTag:noInternetLabelTag] setHidden:NO];
         NSLog(@"No internet connection");
     }else{
-        noInternetPopUp.hidden = YES;
-        noInternetLabel.hidden = YES;
+        [[self.view viewWithTag:noInternetPopUpTag] setHidden:YES];
+        [[self.view viewWithTag:noInternetLabelTag] setHidden:YES];
         NSLog(@"Internet access is available");
         if (![Playlist thePlaylist].isSetEntries && !isRequestSent){
+            // Get playlist from API
             [self getPlaylist];
         }
     }
@@ -131,7 +135,7 @@ NSURL *_url;
     [_config addConfigKey:@"EmbedPlayer.HidePosterOnStart" withValue:@"true"];
     [_config addConfigKey:@"topBarContainer.plugin" withValue:@"false"];
     [_config addConfigKey:@"largePlayBtn.plugin" withValue:@"false"];
-    //[config addConfigKey:@"loadingSpinner.plugin" withValue:@"false"];
+    [_config addConfigKey:@"loadingSpinner.plugin" withValue:@"false"];
     NSLog(@"HTML Controls hid");
 }
 
@@ -161,9 +165,13 @@ NSURL *_url;
     }
 }
 
+// Get playlist from API
 -(void)getPlaylist {
     isRequestSent = YES;
     NSLog(@"GET REQUEST PLAYLIST");
+    [[self.view viewWithTag:loadingPopUpTag] setHidden:NO];
+    [[self.view viewWithTag:spinnerTag] setHidden:NO];
+    [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
     // 1. The web address & headers
     //NSString *webAddress = @"http://devcr.com.ar:8080/api/playlist/radiox/lunes";
     //NSString *webAddress = @"http://127.0.0.1:8080/api/test";
@@ -182,7 +190,13 @@ NSURL *_url;
     
     // 5. A session task: NSURLSessionDataTask or NSURLSessionDownloadTask
     NSURLSessionDataTask *dataTask = [urlSession dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
-        
+        dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+            dispatch_async(dispatch_get_main_queue(), ^(void){
+                [[self.view viewWithTag:loadingPopUpTag] setHidden:YES];
+                [[self.view viewWithTag:spinnerTag] setHidden:YES];
+                [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+            });
+        });
         if (error == nil){
             NSError *parseError;
             NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&parseError];
@@ -251,21 +265,26 @@ NSURL *_url;
 }
 
 
--(void)drawnoInternetPopUpOverlay{
+-(void)drawNoInternetPopUpOverlay{
     int width = 160, height = 160;
     int statusBarHeight= [UIApplication sharedApplication].statusBarFrame.size.height;
     CGRect noInternetPopUpFrame = CGRectMake(CGRectGetMidX(self.view.frame) - (width / 2.0), CGRectGetMidY(self.view.frame) + statusBarHeight - (height / 2.0), width,height);
-    noInternetPopUp = [[UIView alloc] initWithFrame:noInternetPopUpFrame];
+    UIView *noInternetPopUp = [[UIView alloc] initWithFrame:noInternetPopUpFrame];
+    UILabel *noInternetLabel = [[UILabel alloc] initWithFrame:noInternetPopUpFrame];
+    [noInternetPopUp setTag:noInternetPopUpTag];
+    [noInternetLabel setTag:noInternetLabelTag];
+    
     noInternetPopUp.layer.cornerRadius = 10;
     noInternetPopUp.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin);
     noInternetPopUp.backgroundColor = [UIColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:0.5];
-    noInternetLabel = [[UILabel alloc] initWithFrame:noInternetPopUpFrame];
+    
     noInternetLabel.text = @"No internet \nconnection";
     noInternetLabel.lineBreakMode = NSLineBreakByWordWrapping;
     noInternetLabel.numberOfLines = 0;
     noInternetLabel.textAlignment = NSTextAlignmentCenter;
     noInternetLabel.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin);
     noInternetLabel.textColor = [UIColor whiteColor];
+    
     NetworkStatus remoteHostStatus = [self.internetReachability currentReachabilityStatus];
     if(remoteHostStatus == NotReachable) {
         noInternetLabel.hidden = NO;
@@ -274,12 +293,36 @@ NSURL *_url;
         noInternetLabel.hidden = YES;
         noInternetPopUp.hidden = YES;
     }
-    
-    
     [self.view addSubview:noInternetPopUp];
     [self.view addSubview:noInternetLabel];
     //[noInternetPopUp release];
 }
+
+-(void)drawLoadingPopUpOverlay{
+    int width = 120, height = 120;
+    int statusBarHeight= [UIApplication sharedApplication].statusBarFrame.size.height;
+    CGRect loadingPopUpFrame = CGRectMake(CGRectGetMidX(self.view.frame) - (width / 2.0), CGRectGetMidY(self.view.frame) + statusBarHeight - (height / 2.0), width,height);
+    UIActivityIndicatorView *spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+    spinner.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin);
+    CGRect spinnerFrame = spinner.frame;
+    spinnerFrame.origin.x = self.view.frame.size.width / 2 - spinnerFrame.size.width / 2;
+    spinnerFrame.origin.y = self.view.frame.size.height / 2 + statusBarHeight - spinnerFrame.size.height / 2;
+    spinner.frame = spinnerFrame;
+    [spinner setTag:spinnerTag];
+    UIView *loadingPopUp =[[UIView alloc] initWithFrame:loadingPopUpFrame];
+    [loadingPopUp setTag:loadingPopUpTag];
+    loadingPopUp.layer.cornerRadius = 10;
+    loadingPopUp.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin);
+    loadingPopUp.backgroundColor = [UIColor colorWithRed:0.15 green:0.15 blue:0.15 alpha:0.5];
+    loadingPopUp.hidden = YES;
+    spinner.hidden = YES;
+ 
+    [self.view addSubview:loadingPopUp];
+    [self.view addSubview:spinner];
+    [spinner startAnimating];
+    //[loadingPopUp release];
+}
+
 
 - (void)viewDidAppear:(BOOL)animated {
     [super viewDidAppear:animated];
@@ -287,9 +330,14 @@ NSURL *_url;
     self.player.view.frame = (CGRect){CGPointZero, _playerHolderView.frame.size};
     [self.player loadPlayerIntoViewController:self];
     [_playerHolderView addSubview:_player.view];
-    [self drawnoInternetPopUpOverlay];
-    
-    
+    [self drawNoInternetPopUpOverlay];
+    [self drawLoadingPopUpOverlay];
+    /*
+    if (isRequestSent){
+        [[self.view viewWithTag:loadingPopUpTag] setHidden:NO];
+        [[self.view viewWithTag:spinnerTag] setHidden:NO];
+    }
+     */
     //[self presentViewController:self.player animated:YES completion:nil];
     
 }
