@@ -25,6 +25,7 @@ int const noInternetPopUpTag = 1;
 int const loadingPopUpTag = 2;
 int const noInternetLabelTag = 3;
 int const spinnerTag = 4;
+int const reloadButtonTag = 5;
 
 @implementation ViewController {
     BOOL isFirstTime;
@@ -122,6 +123,7 @@ int const spinnerTag = 4;
     // Setting this property will cache the html pages in the limit size
     // config.cacheSize = 0.8;
     [_config setEntryId: entryID];
+    // Set AutoPlay as configuration on player (same like setting a flashvar)
     [_config addConfigKey:@"autoPlay" withValue:@"true"];
     [self hideHTMLControls];
     NSLog(@"PLAYER CONFIGURED");
@@ -129,10 +131,11 @@ int const spinnerTag = 4;
 
 // chromeless config
 - (void)hideHTMLControls {
-    // Set AutoPlay as configuration on player (same like setting a flashvar)
+    
     [_config addConfigKey:@"controlBarContainer.plugin" withValue:@"false"];
     // whitout poster
     [_config addConfigKey:@"EmbedPlayer.HidePosterOnStart" withValue:@"true"];
+    [_config addConfigKey:@"EmbedPlayer.ShowPosterOnStop" withValue:@"false"];
     [_config addConfigKey:@"topBarContainer.plugin" withValue:@"false"];
     [_config addConfigKey:@"largePlayBtn.plugin" withValue:@"false"];
     [_config addConfigKey:@"loadingSpinner.plugin" withValue:@"false"];
@@ -142,6 +145,9 @@ int const spinnerTag = 4;
 - (void)kPlayer:(KPViewController *)player playerPlaybackStateDidChange:(KPMediaPlaybackState)state{
     [self logPlaybackState: state];
     //if (state == KPMediaPlaybackStateEnded && counter < [entryIds count]-1){
+    if (state == KPMediaPlaybackStatePlaying){
+        [[self.view viewWithTag:reloadButtonTag] setHidden:YES];
+    }
     if (state == KPMediaPlaybackStateEnded && ![[Playlist thePlaylist] isLastEntrie]){
         //counter = counter + 1;
         NSLog(@"NEXT VIDEO");
@@ -150,9 +156,14 @@ int const spinnerTag = 4;
         //[player changeMedia:[entryIds[counter]objectForKey:@"id"]];
     }
     if (state == KPMediaPlaybackStatePaused && ![[Playlist thePlaylist] isLastEntrie]){
-    //    [player.playerController play];
+        double currentTime = [[player playerController] currentPlaybackTime];
+        double entryIDduration = [[player playerController] duration];
+        NSLog(@"CURRENT %f", currentTime);
+        NSLog(@"DURATION %f",entryIDduration);
+        if (currentTime != entryIDduration && currentTime != 0){
+            [[self.view viewWithTag:reloadButtonTag] setHidden:NO];
+        }
     }
-    
 }
 
 
@@ -162,8 +173,12 @@ int const spinnerTag = 4;
         isFirstTime = NO;
         [_player.playerController seek:[[Playlist thePlaylist] getCurrentOffset]];
         [_player.playerController play];
+        
+    
+        
     }
 }
+
 
 // Get playlist from API
 -(void)getPlaylist {
@@ -175,7 +190,8 @@ int const spinnerTag = 4;
     // 1. The web address & headers
     //NSString *webAddress = @"http://devcr.com.ar:8080/api/playlist/radiox/lunes";
     //NSString *webAddress = @"http://127.0.0.1:8080/api/test";
-    NSString *webAddress = @"http://devcr.com.ar:8080/api/test";
+    //NSString *webAddress = @"http://devcr.com.ar:8080/api/test";
+    NSString *webAddress = @"http://devcr.com.ar:8080/api/playlist";
     
     
     // 2. An NSURL wrapped in an NSURLRequest
@@ -316,11 +332,30 @@ int const spinnerTag = 4;
     loadingPopUp.backgroundColor = [UIColor colorWithRed:0.15 green:0.15 blue:0.15 alpha:0.5];
     loadingPopUp.hidden = YES;
     spinner.hidden = YES;
- 
     [self.view addSubview:loadingPopUp];
     [self.view addSubview:spinner];
     [spinner startAnimating];
     //[loadingPopUp release];
+}
+
+-(void)drawReloadButton{
+    int statusBarHeight= [UIApplication sharedApplication].statusBarFrame.size.height;
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    [button addTarget:self action:@selector(playAgain) forControlEvents:UIControlEventTouchUpInside];
+    [button setTitle:@"Play" forState:UIControlStateNormal];
+    CGRect buttonFrame = CGRectMake(80.0, 160.0, 160.0, 40.0);
+    buttonFrame.origin.x = self.view.frame.size.width / 2 - buttonFrame.size.width / 2;
+    buttonFrame.origin.y = self.view.frame.size.height / 2 + statusBarHeight - buttonFrame.size.height / 2;
+    button.frame = buttonFrame;
+    button.backgroundColor = [UIColor colorWithRed:0.15 green:0.15 blue:0.15 alpha:0.5];
+    [button setTag:reloadButtonTag];
+    button.hidden = YES;
+    button.autoresizingMask = (UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin);
+    [self.view addSubview:button];
+}
+
+-(void)playAgain{
+    [_player.playerController play];
 }
 
 
@@ -332,6 +367,7 @@ int const spinnerTag = 4;
     [_playerHolderView addSubview:_player.view];
     [self drawNoInternetPopUpOverlay];
     [self drawLoadingPopUpOverlay];
+    [self drawReloadButton];
     /*
     if (isRequestSent){
         [[self.view viewWithTag:loadingPopUpTag] setHidden:NO];
