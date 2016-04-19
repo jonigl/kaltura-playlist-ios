@@ -73,8 +73,12 @@ int const reloadButtonTag = 5;
 {
     NetworkStatus remoteHostStatus = [self.internetReachability currentReachabilityStatus];
     if(remoteHostStatus == NotReachable) {
-        [[self.view viewWithTag:noInternetPopUpTag] setHidden:NO];
-        [[self.view viewWithTag:noInternetLabelTag] setHidden:NO];
+        double currentTime = [[_player playerController] currentPlaybackTime];
+        NSLog(@"CURRENT %f", currentTime);
+        if (currentTime == 0){
+            [[self.view viewWithTag:noInternetPopUpTag] setHidden:NO];
+            [[self.view viewWithTag:noInternetLabelTag] setHidden:NO];
+        }
         NSLog(@"No internet connection");
     }else{
         [[self.view viewWithTag:noInternetPopUpTag] setHidden:YES];
@@ -156,13 +160,26 @@ int const reloadButtonTag = 5;
         //[player changeMedia:[entryIds[counter]objectForKey:@"id"]];
     }
     if (state == KPMediaPlaybackStatePaused && ![[Playlist thePlaylist] isLastEntrie]){
-        double currentTime = [[player playerController] currentPlaybackTime];
-        double entryIDduration = [[player playerController] duration];
-        NSLog(@"CURRENT %f", currentTime);
-        NSLog(@"DURATION %f",entryIDduration);
-        if (currentTime != entryIDduration && currentTime != 0){
-            [[self.view viewWithTag:reloadButtonTag] setHidden:NO];
-        }
+        [self tryToPlay];
+    }
+}
+
+-(void)tryToPlay{
+    double currentTime = [[_player playerController] currentPlaybackTime];
+    double entryIDduration = [[_player playerController] duration];
+    NSLog(@"CURRENT %f", currentTime);
+    NSLog(@"DURATION %f",entryIDduration);
+    if(currentTime != entryIDduration && currentTime != 0) {
+        NSLog(@"TRYING TO PLAY");
+        [[self.view viewWithTag:spinnerTag] setHidden:NO];
+    [[self.view viewWithTag:loadingPopUpTag] setHidden:NO];
+        //[[self.view viewWithTag:reloadButtonTag] setHidden:NO];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            [[_player playerController] play];
+            [[self.view viewWithTag:spinnerTag] setHidden:YES];
+            [[self.view viewWithTag:loadingPopUpTag] setHidden:YES];
+        });
+        
     }
 }
 
@@ -173,9 +190,6 @@ int const reloadButtonTag = 5;
         isFirstTime = NO;
         [_player.playerController seek:[[Playlist thePlaylist] getCurrentOffset]];
         [_player.playerController play];
-        
-    
-        
     }
 }
 
@@ -236,6 +250,12 @@ int const reloadButtonTag = 5;
         }else{
             NSLog(@"There was a problem while a response was expected");
             isRequestSent = NO;
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [self getPlaylist];
+                [[self.view viewWithTag:spinnerTag] setHidden:YES];
+                [[self.view viewWithTag:loadingPopUpTag] setHidden:NO];
+            });
+            
         }
         
     }];
